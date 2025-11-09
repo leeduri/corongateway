@@ -26,8 +26,11 @@ const App: React.FC = () => {
 const Main: React.FC = () => {
   const { user } = useAuth();
 
+  // Conditionally apply background color only when logged in
+  const backgroundClasses = user ? 'bg-gray-50 dark:bg-gray-900' : '';
+
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
+    <div className={`min-h-screen text-gray-900 dark:text-gray-100 ${backgroundClasses}`}>
       {user && <Header />}
       <main className={`${user ? 'pt-16' : ''}`}>
         <Routes>

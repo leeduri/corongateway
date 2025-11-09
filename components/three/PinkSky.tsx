@@ -1,6 +1,5 @@
-// FIX: All errors in this file are due to TypeScript not recognizing @react-three/fiber's custom JSX elements.
-// The triple-slash directive below explicitly loads the type definitions for @react-three/fiber,
-// which augments the JSX namespace and makes the compiler aware of elements like <mesh>, <color>, etc.
+// FIX: Add a triple-slash directive to include TypeScript definitions for @react-three/fiber.
+// This allows TypeScript to recognize custom JSX elements from the library, such as <mesh> and <color>.
 /// <reference types="@react-three/fiber" />
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
@@ -36,8 +35,8 @@ const PinkSpaceNebula: React.FC = () => {
                 ref={materialRef}
                 uniforms={{
                     time: { value: 0 },
-                    color1: { value: new THREE.Color("#ff69b4") }, // HotPink
-                    color2: { value: new THREE.Color("#9400d3") }, // DarkViolet
+                    color1: { value: new THREE.Color("#FF7E5F") }, // Warm orange
+                    color2: { value: new THREE.Color("#6A11CB") }, // Soft violet sky
                 }}
                 vertexShader={`
                     varying vec2 vUv;
@@ -52,14 +51,10 @@ const PinkSpaceNebula: React.FC = () => {
                     uniform vec3 color2;
                     varying vec2 vUv;
 
-                    // 2D Random
                     float random (in vec2 st) {
-                        return fract(sin(dot(st.xy,
-                                             vec2(12.9898,78.233)))
-                                     * 43758.5453123);
+                        return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
                     }
 
-                    // 2D Noise
                     float noise (in vec2 st) {
                         vec2 i = floor(st);
                         vec2 f = fract(st);
@@ -79,7 +74,6 @@ const PinkSpaceNebula: React.FC = () => {
                     float fbm (in vec2 st) {
                         float value = 0.0;
                         float amplitude = .5;
-                        float frequency = 0.;
                         for (int i = 0; i < OCTAVES; i++) {
                             value += amplitude * noise(st);
                             st *= 2.;
@@ -95,11 +89,14 @@ const PinkSpaceNebula: React.FC = () => {
                         float f = fbm(st + time * 0.1);
                         float q = fbm(st - time * 0.05);
                         
-                        float noise = fbm(st + f) + fbm(st + q);
+                        float n = fbm(st + f) + fbm(st + q);
 
-                        vec3 color = mix(color1, color2, smoothstep(0.3, 0.7, noise));
-                        
-                        gl_FragColor = vec4(color, noise * 0.4);
+                        // Gradient 느낌 강화
+                        float gradient = smoothstep(0.2, 0.8, vUv.y);
+                        vec3 baseColor = mix(color1, color2, gradient);
+
+                        vec3 color = mix(baseColor, color2, smoothstep(0.3, 0.7, n));
+                        gl_FragColor = vec4(color, 0.6);
                     }
                 `}
                 transparent={true}

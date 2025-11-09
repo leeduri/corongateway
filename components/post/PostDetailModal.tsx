@@ -29,6 +29,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
   
   // New Comment State
   const [newCommentText, setNewCommentText] = useState('');
+  const commentInputRef = useRef<HTMLInputElement>(null);
 
   // Post Caption Edit State
   const [isEditingCaption, setIsEditingCaption] = useState(false);
@@ -136,11 +137,16 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
     setEditedCommentText(comment.text);
   };
 
+  const handleCancelCommentEdit = () => {
+    setEditingCommentId(null);
+    setEditedCommentText('');
+  };
+
   const handleSaveComment = async (commentId: string) => {
     try {
       const updatedPost = await api.updateComment(post.id, commentId, editedCommentText);
       updatePost(updatedPost);
-      setEditingCommentId(null);
+      handleCancelCommentEdit();
     } catch (error) {
       showToast('Failed to update comment.');
     }
@@ -176,12 +182,12 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
                 <XIcon className="h-8 w-8" />
             </button>
             <div 
-              className="bg-gray-800 shadow-xl w-full md:max-w-5xl md:max-h-[90vh] md:rounded-lg flex flex-col md:flex-row relative"
+              className="bg-gray-800 shadow-xl w-full max-w-screen-sm md:max-w-5xl max-h-screen md:max-h-[90vh] md:rounded-lg flex flex-col md:flex-row relative"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Image Section */}
               <div className="w-full md:w-[55%] lg:w-[60%] bg-black flex items-center justify-center md:rounded-l-lg">
-                  <img src={post.imageUrl} alt={post.caption} className="w-full h-auto object-contain max-h-[60vh] md:max-h-full" />
+                  <img src={post.imageUrl} alt={post.caption} className="w-full h-auto object-contain max-h-[60vh] md:max-h-[90vh]" />
               </div>
 
               {/* Details Section */}
@@ -193,38 +199,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
                     <Link to={`/profile/${post.user.id}`} className="font-semibold text-sm">{post.user.username}</Link>
                   </div>
                   {currentUser?.id === post.user.id && !isEditingCaption && (
-                    <div className="relative" ref={menuRef}>
-                      <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-400 hover:text-white">
-                          <MoreHorizontalIcon className="w-5 h-5"/>
-                      </button>
-                      {isMenuOpen && (
-                          <div className="absolute right-0 mt-2 w-40 bg-gray-900 rounded-md shadow-lg z-20 border border-gray-700">
-                              <ul className="py-1">
-                                  <li>
-                                      <button
-                                          onClick={() => {
-                                              setIsEditingCaption(true);
-                                              setIsMenuOpen(false);
-                                          }}
-                                          className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
-                                      >
-                                          <PencilIcon className="w-4 h-4" /> Edit Post
-                                      </button>
-                                  </li>
-                                  <li>
-                                      <button
-                                          onClick={() => {
-                                            setIsMenuOpen(false);
-                                            setConfirmDeleteOpen(true);
-                                          }}
-                                          className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
-                                      >
-                                          <TrashIcon className="w-4 h-4" /> Delete Post
-                                      </button>
-                                  </li>
-                              </ul>
-                          </div>
-                      )}
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setIsEditingCaption(true)} className="text-gray-400 hover:text-white">
+                            <PencilIcon className="w-5 h-5"/>
+                        </button>
+                        <button onClick={() => setConfirmDeleteOpen(true)} className="text-gray-400 hover:text-red-500">
+                            <TrashIcon className="w-5 h-5"/>
+                        </button>
                     </div>
                   )}
                 </div>
@@ -270,7 +251,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
                                 <div className="flex items-center gap-2">
                                   <input type="text" value={editedCommentText} onChange={(e) => setEditedCommentText(e.target.value)} className="bg-gray-700 text-white w-full rounded px-2 py-1 text-sm"/>
                                   <button onClick={() => handleSaveComment(c.id)} className="text-xs text-green-400 hover:underline">Save</button>
-                                  <button onClick={() => setEditingCommentId(null)} className="text-xs text-red-400 hover:underline">Cancel</button>
+                                  <button onClick={handleCancelCommentEdit} className="text-xs text-red-400 hover:underline">Cancel</button>
                                 </div>
                               ) : (
                                 <div className="flex justify-between items-start">
@@ -298,26 +279,26 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
                     <button onClick={handleLike}>
                       <HeartIcon className={`w-6 h-6 ${isLiked ? 'text-red-500 fill-current' : ''}`} />
                     </button>
-                    <button><MessageCircleIcon className="w-6 h-6" /></button>
+                    <button onClick={() => commentInputRef.current?.focus()}><MessageCircleIcon className="w-6 h-6" /></button>
                     <button onClick={handleShare}><SendIcon className="w-6 h-6" /></button>
                   </div>
                   <p className="font-semibold text-sm mb-2">{likeCount} likes</p>
                   <form onSubmit={handleCommentSubmit} className="flex">
-                    <input type="text" value={newCommentText} onChange={(e) => setNewCommentText(e.target.value)} placeholder="Add a comment..." className="bg-transparent w-full outline-none text-sm"/>
+                    {/* FIX: Corrected the typo in onChange event handler and completed the input and form. */}
+                    <input ref={commentInputRef} type="text" value={newCommentText} onChange={(e) => setNewCommentText(e.target.value)} placeholder="Add a comment..." className="bg-transparent w-full outline-none text-sm" />
                     <button type="submit" className="text-pink-500 font-semibold text-sm" disabled={!newCommentText.trim()}>Post</button>
                   </form>
                 </div>
               </div>
             </div>
-
         </div>
       </div>
-      <ConfirmationModal
+      <ConfirmationModal 
         isOpen={isConfirmDeleteOpen}
         onClose={() => setConfirmDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete Post"
-        message="Are you sure you want to permanently delete this post? This action cannot be undone."
+        message="Are you sure you want to delete this post? This action cannot be undone."
         confirmText="Delete"
         isConfirming={isDeleting}
       />

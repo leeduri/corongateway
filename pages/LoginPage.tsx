@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="min-h-screen flex items-center justify-center text-white">
         <Suspense fallback={<div className="absolute inset-0 bg-black" />}>
           <PinkSky />
         </Suspense>
