@@ -3,11 +3,11 @@
 
 import type { User, Post, Comment } from '../types';
 
-const API_BASE =
+const API_BASE = 'https://xbar-backend-965903745875.asia-northeast3.run.app';
   // FIX: Cast `import.meta` to `any` to resolve TypeScript error when Vite client types are not configured.
-  ((import.meta as any).env.VITE_BACKEND_BASE_URL as string | undefined) ||
-  ((import.meta as any).env.VITE_API_BASE_URL as string | undefined) ||
-  'https://xbar-backend-965903745875.asia-northeast3.run.app';
+ // ((import.meta as any).env.VITE_BACKEND_BASE_URL as string | undefined) ||
+//  ((import.meta as any).env.VITE_API_BASE_URL as string | undefined) ||
+ 
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
