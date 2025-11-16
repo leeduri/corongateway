@@ -4,7 +4,7 @@
 
 import type { User, Post, Comment } from '../types';
 
-const API_BASE = 'https://coronagateway.kr';
+const API_BASE = 'https://corongateway-x-bar-965903745875.us-west1.run.app';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
