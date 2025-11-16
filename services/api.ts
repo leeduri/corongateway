@@ -8,7 +8,7 @@ const API_BASE = 'https://xbar-backend-965903745875.asia-northeast3.run.app';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    credentials: 'include',
+   // credentials: 'include',
     ...options,
   });
   if (!res.ok) {
@@ -58,7 +58,7 @@ export async function updateUser(
   const res = await fetch(`${API_BASE}/api/users/${encodeURIComponent(userId)}`, {
     method: 'PATCH',
     body: form,
-    credentials: 'include',
+    //credentials: 'include',
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
