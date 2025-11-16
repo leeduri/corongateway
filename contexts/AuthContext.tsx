@@ -39,13 +39,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (id: string, pass: string) => {
     const loggedInUser = await apiLogin(id, pass);
     setUser(loggedInUser);
-    localStorage.setItem('userId', loggedInUser.id);
+    // FIX: Argument of type 'number' is not assignable to parameter of type 'string'.
+    localStorage.setItem('userId', String(loggedInUser.id));
   };
 
   const signup = async (email: string, username: string, pass: string) => {
     const newUser = await apiSignup(email, username, pass);
     setUser(newUser);
-    localStorage.setItem('userId', newUser.id);
+    // FIX: Argument of type 'number' is not assignable to parameter of type 'string'.
+    localStorage.setItem('userId', String(newUser.id));
   };
   
   const updateUser = async (data: { username: string; bio: string; profileImageFile: File | null }) => {

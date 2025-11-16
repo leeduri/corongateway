@@ -65,7 +65,7 @@ export const recommendUsersByHashtags = async (targetHashtags: string[]): Promis
           items: {
             type: Type.OBJECT,
             properties: {
-              id: { type: Type.STRING },
+              id: { type: Type.NUMBER },
               username: { type: Type.STRING },
             },
             required: ['id', 'username'],
@@ -74,7 +74,7 @@ export const recommendUsersByHashtags = async (targetHashtags: string[]): Promis
       },
     });
 
-    const recommendedUserIds = JSON.parse(response.text).map((u: {id: string}) => u.id);
+    const recommendedUserIds = JSON.parse(response.text).map((u: {id: number}) => u.id);
     
     // Filter and return full user objects based on recommended IDs
     return allUsers.filter(user => recommendedUserIds.includes(user.id));

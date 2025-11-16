@@ -1,13 +1,10 @@
+
 // src/services/api.ts (교체본)
 // 실제 백엔드 호출 버전. 기존 export 이름을 유지해 컴포넌트/컨텍스트 수정 최소화.
 
 import type { User, Post, Comment } from '../types';
 
-const API_BASE = 'https://xbar-backend-965903745875.asia-northeast3.run.app';
-  // FIX: Cast `import.meta` to `any` to resolve TypeScript error when Vite client types are not configured.
- // ((import.meta as any).env.VITE_BACKEND_BASE_URL as string | undefined) ||
-//  ((import.meta as any).env.VITE_API_BASE_URL as string | undefined) ||
- 
+const API_BASE = 'https://coronagateway.kr';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -51,7 +48,7 @@ export async function getMockUserById(userId: string): Promise<User> {
 }
 
 export async function updateUser(
-  userId: string,
+  userId: number,
   data: { username?: string; bio?: string; profileImageFile?: File | null }
 ): Promise<User> {
   const form = new FormData();
@@ -61,6 +58,7 @@ export async function updateUser(
   const res = await fetch(`${API_BASE}/api/users/${encodeURIComponent(userId)}`, {
     method: 'PATCH',
     body: form,
+    credentials: 'include',
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
@@ -78,7 +76,7 @@ export async function getMockPostsByUserId(userId: string): Promise<Post[]> {
   return request<Post[]>(`/api/posts?userId=${encodeURIComponent(userId)}`);
 }
 
-export async function createPost(postData: { userId: string; imageFile: File; caption: string }): Promise<Post> {
+export async function createPost(postData: { userId: number; imageFile: File; caption: string }): Promise<Post> {
   const form = new FormData();
   // The backend should infer the user from the session/cookie, so userId is not sent in the form.
   form.append('caption', postData.caption ?? '');
@@ -113,12 +111,12 @@ export async function deletePost(postId: string): Promise<{ id: string }> {
   return { id: postId };
 }
 
-export async function addComment(postId: string, userId: string, text: string): Promise<Comment> {
+export async function addComment(postId: string, userId: number, text: string): Promise<Comment> {
   return request<Comment>(`/api/posts/${encodeURIComponent(postId)}/comments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     // Backend should infer user from session, but following original pattern for now.
-    body: JSON.stringify({ userId: Number(userId), text }),
+    body: JSON.stringify({ userId, text }),
   });
 }
 

@@ -26,7 +26,7 @@ const ProfilePage: React.FC = () => {
     const fetchProfileUser = async () => {
       if (!userId) return;
       // If we are viewing our own profile, use the up-to-date authUser object
-      if (authUser && authUser.id === userId) {
+      if (authUser && String(authUser.id) === userId) {
          setProfileUser(authUser);
          setUserLoading(false);
          return;
@@ -46,7 +46,7 @@ const ProfilePage: React.FC = () => {
   }, [userId, authUser]);
   
   const userPosts = useMemo(() => {
-    return allPosts.filter(post => post.user.id === userId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return allPosts.filter(post => String(post.user.id) === userId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [allPosts, userId]);
 
   const handlePostClick = (post: Post) => {

@@ -1,6 +1,6 @@
 
 export interface User {
-  id: string;
+  id: number;
   username: string;
   email: string;
   profileImageUrl: string;
@@ -18,7 +18,7 @@ export interface Comment {
 
 export interface Like {
   id: string;
-  userId: string;
+  userId: number;
 }
 
 export interface Post {

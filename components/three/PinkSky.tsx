@@ -1,6 +1,4 @@
-
-// FIX: The errors related to JSX.IntrinsicElements and missing type definitions for @react-three/fiber
-// are resolved by adding a triple-slash directive to explicitly include the library's types.
+// FIX: Added a triple-slash directive to include @react-three/fiber types and resolve type definition errors.
 /// <reference types="@react-three/fiber" />
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
