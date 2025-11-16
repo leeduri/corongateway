@@ -21,11 +21,11 @@ interface PostDetailModalProps {
 const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post }) => {
   const { user: currentUser } = useAuth();
   const { showToast } = useToast();
-  const { updatePost, deletePost } = usePosts();
+  const { updatePost, deletePost: deletePostFromContext } = usePosts();
 
   // Like State
-  const [isLiked, setIsLiked] = useState(post?.likes.some(like => like.userId === currentUser?.id));
-  const [likeCount, setLikeCount] = useState(post?.likes.length || 0);
+  const [isLiked, setIsLiked] = useState(post?.likes?.some(like => like.userId === currentUser?.id));
+  const [likeCount, setLikeCount] = useState(post?.likes?.length || 0);
   
   // New Comment State
   const [newCommentText, setNewCommentText] = useState('');
@@ -50,15 +50,12 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
 
   useEffect(() => {
       if (post) {
-        setIsLiked(post.likes.some(like => like.userId === currentUser?.id));
-        setLikeCount(post.likes.length);
-        // Only update the edited caption from the prop if the user is not currently editing.
-        // This prevents wiping out in-progress edits if the post object updates in the background.
+        setIsLiked(post.likes?.some(like => like.userId === currentUser?.id));
+        setLikeCount(post.likes?.length ?? 0);
         if (!isEditingCaption) {
-          setEditedCaption(post.caption + ' ' + post.hashtags.map(h => `#${h}`).join(' '));
+          setEditedCaption(post.caption + ' ' + (post.hashtags ?? []).map(h => `#${h}`).join(' '));
         }
       } else {
-        // Reset states when modal is closed or post is null
         setIsEditingCaption(false);
         setEditingCommentId(null);
       }
@@ -90,8 +87,12 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
     e.preventDefault();
     if (newCommentText.trim() && currentUser) {
        try {
-        const updatedPost = await api.addComment(post.id, currentUser.id, newCommentText);
-        updatePost(updatedPost);
+        const newComment = await api.addComment(post.id, currentUser.id, newCommentText);
+        const updatedPostWithNewComment: Post = {
+          ...post,
+          comments: [...(post.comments || []), newComment]
+        };
+        updatePost(updatedPostWithNewComment);
         setNewCommentText('');
       } catch (error) {
         showToast('Failed to add comment.');
@@ -112,8 +113,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
 
   const handleCancelEdit = () => {
     setIsEditingCaption(false);
-    // Reset text to original post content if user cancels
-    setEditedCaption(post.caption + ' ' + post.hashtags.map(h => `#${h}`).join(' '));
+    setEditedCaption(post.caption + ' ' + (post.hashtags ?? []).map(h => `#${h}`).join(' '));
   };
   
   const handleConfirmDelete = async () => {
@@ -121,10 +121,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
     setIsDeleting(true);
     try {
         await api.deletePost(post.id);
-        deletePost(post.id);
+        deletePostFromContext(post.id);
         showToast('Post deleted successfully.');
         setConfirmDeleteOpen(false);
-        onClose(); // Close the main modal after deletion
+        onClose(); 
     } catch (error) {
         showToast('Failed to delete post.');
     } finally {
@@ -144,8 +144,12 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
 
   const handleSaveComment = async (commentId: string) => {
     try {
-      const updatedPost = await api.updateComment(post.id, commentId, editedCommentText);
-      updatePost(updatedPost);
+      const updatedComment = await api.updateComment(commentId, editedCommentText);
+      const updatedPostWithEditedComment: Post = {
+          ...post,
+          comments: (post.comments ?? []).map(c => c.id === commentId ? { ...c, ...updatedComment } : c),
+      };
+      updatePost(updatedPostWithEditedComment);
       handleCancelCommentEdit();
     } catch (error) {
       showToast('Failed to update comment.');
@@ -155,8 +159,12 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
   const handleDeleteComment = async (commentId: string) => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
        try {
-        const updatedPost = await api.deleteComment(post.id, commentId);
-        updatePost(updatedPost);
+        await api.deleteComment(commentId);
+         const updatedPostAfterDelete: Post = {
+            ...post,
+            comments: (post.comments ?? []).filter(c => c.id !== commentId),
+        };
+        updatePost(updatedPostAfterDelete);
         showToast('Comment deleted.');
       } catch (error) {
         showToast('Failed to delete comment.');
@@ -235,7 +243,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
                               <span>{post.caption}</span>
                             </p>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {post.hashtags.map((tag) => (
+                              {(post.hashtags ?? []).map((tag) => (
                                 <Link key={tag} to={`/search?q=#${tag}`} className="text-pink-400 text-sm">#{tag}</Link>
                               ))}
                             </div>
@@ -243,7 +251,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
                         )}
                     </div>
                   </div>
-                  {post.comments.map(c => (
+                  {(post.comments ?? []).map(c => (
                       <div key={c.id} className="flex items-start space-x-3 text-sm group">
                           <Avatar src={c.user.profileImageUrl} alt={c.user.username} size="sm" />
                           <div className="flex-grow">
@@ -284,7 +292,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ isOpen, onClose, post
                   </div>
                   <p className="font-semibold text-sm mb-2">{likeCount} likes</p>
                   <form onSubmit={handleCommentSubmit} className="flex">
-                    {/* FIX: Corrected the typo in onChange event handler and completed the input and form. */}
                     <input ref={commentInputRef} type="text" value={newCommentText} onChange={(e) => setNewCommentText(e.target.value)} placeholder="Add a comment..." className="bg-transparent w-full outline-none text-sm" />
                     <button type="submit" className="text-pink-500 font-semibold text-sm" disabled={!newCommentText.trim()}>Post</button>
                   </form>

@@ -1,5 +1,6 @@
-// FIX: Add a triple-slash directive to include TypeScript definitions for @react-three/fiber.
-// This allows TypeScript to recognize custom JSX elements from the library, such as <mesh> and <color>.
+
+// FIX: The errors related to JSX.IntrinsicElements and missing type definitions for @react-three/fiber
+// are resolved by adding a triple-slash directive to explicitly include the library's types.
 /// <reference types="@react-three/fiber" />
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';

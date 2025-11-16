@@ -16,8 +16,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const { user: currentUser } = useAuth();
   const { showToast } = useToast();
   const { updatePost } = usePosts();
-  const [isLiked, setIsLiked] = useState(post.likes.some(like => like.userId === currentUser?.id));
-  const [likeCount, setLikeCount] = useState(post.likes.length);
+  const [isLiked, setIsLiked] = useState(post.likes?.some(like => like.userId === currentUser?.id) ?? false);
+  const [likeCount, setLikeCount] = useState(post.likes?.length ?? 0);
   const [commentText, setCommentText] = useState('');
   
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -33,8 +33,12 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     e.preventDefault();
     if (commentText.trim() && currentUser) {
       try {
-        const updatedPost = await addComment(post.id, currentUser.id, commentText);
-        updatePost(updatedPost);
+        const newComment = await addComment(post.id, currentUser.id, commentText);
+        const updatedPostWithNewComment: Post = {
+          ...post,
+          comments: [...(post.comments || []), newComment]
+        };
+        updatePost(updatedPostWithNewComment);
         setCommentText('');
       } catch (error) {
         showToast('Failed to add comment.');
@@ -49,8 +53,12 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
   const handleSaveComment = async (commentId: string) => {
     try {
-      const updatedPost = await updateComment(post.id, commentId, editedCommentText);
-      updatePost(updatedPost);
+      const updatedComment = await updateComment(commentId, editedCommentText);
+      const updatedPostWithEditedComment: Post = {
+          ...post,
+          comments: (post.comments ?? []).map(c => c.id === commentId ? { ...c, ...updatedComment } : c),
+      };
+      updatePost(updatedPostWithEditedComment);
       setEditingCommentId(null);
       setEditedCommentText('');
     } catch (error) {
@@ -61,8 +69,12 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const handleDeleteComment = async (commentId: string) => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
-        const updatedPost = await deleteComment(post.id, commentId);
-        updatePost(updatedPost);
+        await deleteComment(commentId);
+        const updatedPostAfterDelete: Post = {
+            ...post,
+            comments: (post.comments ?? []).filter(c => c.id !== commentId),
+        };
+        updatePost(updatedPostAfterDelete);
       } catch (error) {
         showToast('Failed to delete comment.');
       }
@@ -104,7 +116,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         </div>
         
         <div className="flex flex-wrap gap-1">
-           {post.hashtags.map((tag) => (
+           {(post.hashtags ?? []).map((tag) => (
              <Link key={tag} to={`/search?q=#${tag}`} className="text-pink-400 text-sm">#{tag}</Link>
            ))}
         </div>
@@ -112,7 +124,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <div className="text-gray-400 text-xs uppercase mt-2">{new Date(post.createdAt).toLocaleDateString()}</div>
 
         <div className="mt-4 space-y-2">
-            {post.comments.slice(0,2).map(c => (
+            {(post.comments ?? []).slice(0,2).map(c => (
                 <div key={c.id} className="text-sm group">
                   {editingCommentId === c.id ? (
                     <div className="flex items-center gap-2">
@@ -136,7 +148,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                   )}
                 </div>
             ))}
-            {post.comments.length > 2 && <button className="text-gray-400 text-sm">View all {post.comments.length} comments</button>}
+            {(post.comments?.length ?? 0) > 2 && <button className="text-gray-400 text-sm">View all {post.comments.length} comments</button>}
         </div>
       </div>
 

@@ -41,11 +41,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     setIsLoading(true);
 
     try {
-      // In a real app, you'd upload the file to a service like S3 and get a URL.
-      // For this mock, we'll use the local preview URL.
       const newPost = await createPost({
         userId: user.id,
-        imageUrl: preview!,
+        imageFile: file,
         caption,
       });
       addPost(newPost);

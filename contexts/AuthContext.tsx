@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from '../types';
 import { login as apiLogin, signup as apiSignup, getMockUserById, updateUser as apiUpdateUser } from '../services/api';
@@ -52,17 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = async (data: { username: string; bio: string; profileImageFile: File | null }) => {
     if (!user) throw new Error("No user logged in");
     
-    let imageUrl = user.profileImageUrl;
-    if (data.profileImageFile) {
-      // In a real app, upload the file and get a URL.
-      // For mock, we'll create a local blob URL.
-      imageUrl = URL.createObjectURL(data.profileImageFile);
-    }
-    
+    // FIX: Pass the profileImageFile to the API function, not a locally created URL.
+    // The API service is responsible for handling the file upload and the returned `updatedUser`
+    // will contain the new `profileImageUrl`.
     const updatedUser = await apiUpdateUser(user.id, {
       username: data.username,
       bio: data.bio,
-      profileImageUrl: imageUrl,
+      profileImageFile: data.profileImageFile,
     });
 
     setUser(updatedUser);
