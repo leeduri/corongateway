@@ -85,7 +85,7 @@ export async function createPost(postData: { userId: number; imageFile: File; ca
   const res = await fetch(`${API_BASE}/api/posts`, { 
     method: 'POST', 
     body: form,
-    credentials: 'include',
+   // credentials: 'include',
   });
   if (!res.ok) {
     let msg = `API error: ${res.status}`;
