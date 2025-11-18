@@ -3,7 +3,7 @@
 
 import type { User, Post, Comment } from '../types';
 
-const API_BASE = 'https://xbar-backend-965903745875-965903745875.asia-northeast3.run.app/';
+const API_BASE =  'https://xbar-backend-965903745875-965903745875.asia-northeast3.run.app';
 //https://xbar-backend-965903745875.asia-northeast3.run.app
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
